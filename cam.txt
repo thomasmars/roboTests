@@ -1,0 +1,5 @@
+sudo modprobe ov5640
+sudo modprobe sun4i_csi0
+cvlc v4l2:///dev/video0 :v4l2-standard= :input-slave=alsa:// :live-caching=1000 :sout=#transcode{vcodec=mp2v,vb=800,scale=1,acodec=mpga,ab=128,channels=2,samplerate=44100}:http{mux=ts,dst=:8080/} :sout-keep
+
+sudo service motion start

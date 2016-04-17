@@ -3,7 +3,7 @@ import time
 
 print "Test!"
 
-PIN_NUM = 11;
+PIN_NUM = 11
 
 print "Configuring..."
 GPIO.setmode(GPIO.BOARD)

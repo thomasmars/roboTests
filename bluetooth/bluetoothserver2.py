@@ -5,10 +5,10 @@
 # $Id: rfcomm-server.py 518 2007-08-10 07:20:07Z albert $
 
 from bluetooth import *
-from motors.motor_controller import motor_run, add_move
+from motors.motor_controller2 import MotorController
 
-server_sock=BluetoothSocket( RFCOMM )
-server_sock.bind(("",PORT_ANY))
+server_sock = BluetoothSocket(RFCOMM)
+server_sock.bind(("", PORT_ANY))
 server_sock.listen(1)
 
 port = server_sock.getsockname()[1]
@@ -16,23 +16,23 @@ port = server_sock.getsockname()[1]
 uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
 
 advertise_service( server_sock, "SampleServer",
-                   service_id = uuid,
-                   service_classes = [ uuid, SERIAL_PORT_CLASS ],
-                   profiles = [ SERIAL_PORT_PROFILE ],
-#                   protocols = [ OBEX_UUID ]
-                    )
+                   service_id=uuid,
+                   service_classes=[uuid, SERIAL_PORT_CLASS],
+                   profiles=[SERIAL_PORT_PROFILE])
 
 print "Waiting for connection on RFCOMM channel %d" % port
 
 client_sock, client_info = server_sock.accept()
 print "Accepted connection from ", client_info
 
+ctrl = MotorController()
 try:
     while True:
         data = client_sock.recv(1024)
-        if len(data) == 0: break
+        if len(data) == 0:
+            break
         print "received [%s]" % data
-        add_move(data)
+        ctrl.add_move(data)
 
 except IOError:
     pass

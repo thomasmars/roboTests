@@ -3,27 +3,71 @@ import time
 from threading import Thread
 
 
-class MotorPWM:
+class MotorPWM():
     def __init__(self, pin):
         GPIO.setup(pin, GPIO.OUT)
         self.motor_pin = pin
         self.pwm = GPIO.PWM(pin, 100)
-
-    def start(self):
+        self.currentDutyCycle = 100
+        self.halting = False
         self.pwm.start(100)
+        self.cycles_per_second = 100
 
     def stop(self):
+        self.wait_for_halt()
+        self.currentDutyCycle = 100
         self.pwm.ChangeDutyCycle(100)
 
     def set_speed(self, cycle):
-        if cycle < 0:
+        self.wait_for_halt()
+        if (cycle < 0) | (cycle > 100):
+            self.currentDutyCycle = 100
             self.pwm.ChangeDutyCycle(100)
         else:
+            self.currentDutyCycle = cycle
             self.pwm.ChangeDutyCycle(cycle)
 
     def terminate(self):
+        self.wait_for_halt()
         self.pwm.ChangeDutyCycle(100)
         self.pwm.stop()
+
+    def wait_for_halt(self):
+        # Cancel any running threads
+        if self.halting:
+            self.halting = False
+            # Wait two cycles
+            time.sleep(2 * (1 / float(self.cycles_per_second)))
+
+    def slow_to_halt(self, time_to_halt):
+        # Already halted
+        if self.currentDutyCycle >= 100:
+            return
+
+        self.wait_for_halt()
+        halt = Thread(target=self.halting_loop, args=[time_to_halt])
+        halt.start()
+
+    def halting_loop(self, time_to_halt):
+        self.halting = True
+
+        # calculations
+        total_speed_change = 100 - self.currentDutyCycle
+        speed_change_per_second = total_speed_change / time_to_halt
+        speed_change_per_cycle = speed_change_per_second / float(self.cycles_per_second)
+
+        # Change cycle
+        while self.halting & (self.currentDutyCycle < 100):
+            self.currentDutyCycle += speed_change_per_cycle
+            # Cap at 100
+            if self.currentDutyCycle > 100:
+                self.currentDutyCycle = 100
+
+            # Change duty cycle and wait for next
+            self.pwm.ChangeDutyCycle(self.currentDutyCycle)
+            time.sleep(1 / float(self.cycles_per_second))
+
+        self.halting = False
 
 
 class MotorController:
@@ -42,10 +86,6 @@ class MotorController:
         self.motor_1b = MotorPWM(13)
         self.motor_2a = MotorPWM(3)
         self.motor_2b = MotorPWM(5)
-        self.motor_1a.start()
-        self.motor_1b.start()
-        self.motor_2a.start()
-        self.motor_2b.start()
         self.moves_queue = []
         self.is_running = False
         self.max_queue = 5
@@ -54,12 +94,9 @@ class MotorController:
     def add_move(self, move):
         # Max entries
         if len(self.moves_queue) < self.max_queue:
-            print "added move to queue"
             self.moves_queue.append(move)
 
-        print "Are we running ? " + str(self.is_running)
         if not self.is_running:
-            print "Creating a new execute_move thread!"
             thread = Thread(target=self.execute_move)
             thread.start()
 
@@ -68,26 +105,15 @@ class MotorController:
         move = self.moves_queue.pop()
 
         # Execute move
-        print "Change speeds " + str(self.moves[move])
         self.change_speeds(*self.moves[move])
 
         # Wait for move
-        print "Sleeping " + str(self.move_duration)
         time.sleep(self.move_duration)
 
-        print "What is moves queue ? " + str(self.moves_queue)
-        print "What is length ? " + str(len(self.moves_queue))
         if len(self.moves_queue) >= 1:
-            print "Next move"
             thread = Thread(target=self.execute_move)
             thread.start()
         else:
-            print "TURNING OFF ALL MOTORS!"
-            # Turn off all motors
-            self.motor_1a.stop()
-            self.motor_1b.stop()
-            self.motor_2a.stop()
-            self.motor_2b.stop()
             self.is_running = False
 
     def change_speeds(self, speed_1a, speed_2a, speed_1b, speed_2b):
@@ -96,39 +122,19 @@ class MotorController:
         self.motor_1b.set_speed(speed_1b)
         self.motor_2b.set_speed(speed_2b)
 
+    def halt(self, halt_time):
+        self.motor_1a.slow_to_halt(halt_time)
+        self.motor_1b.slow_to_halt(halt_time)
+        self.motor_2a.slow_to_halt(halt_time)
+        self.motor_2b.slow_to_halt(halt_time)
+
+    def instant_stop(self):
+        self.change_speeds(0, 0, 0, 0)
+
     def terminate(self):
-        print "EXITING cleanup"
+        print "Terminated."
         self.motor_1a.terminate()
         self.motor_1b.terminate()
         self.motor_2a.terminate()
         self.motor_2b.terminate()
         GPIO.cleanup()
-
-# INPUT for debugging purposes:
-
-# ctrl = MotorController()
-# gettingInput = True
-# while gettingInput:
-#     cmd = str(raw_input('Command ? (f,b,l,r,exit)'))
-#     print "input is: " + cmd
-#     if cmd == 'exit':
-#         print "exit"
-#         ctrl.terminate()
-#     elif cmd == 'f':
-#         print "forward"
-#         ctrl.add_move("forward")
-#     elif cmd == 'fl':
-#         print "forward_left"
-#         ctrl.add_move("forward_left")
-#     elif cmd == 'fr':
-#         print "forward_right"
-#         ctrl.add_move("forward_right")
-#     elif cmd == 'b':
-#         print "backward"
-#         ctrl.add_move("backward")
-#     elif cmd == 'bl':
-#         print "backward_left"
-#         ctrl.add_move("backward_left")
-#     elif cmd == 'br':
-#         print "backward_right"
-#         ctrl.add_move("backward_right")

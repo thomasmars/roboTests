@@ -28,9 +28,7 @@ class MotorPWM():
             self.pwm.ChangeDutyCycle(cycle)
 
     def terminate(self):
-        self.wait_for_halt()
         self.pwm.ChangeDutyCycle(100)
-        self.pwm.stop()
 
     def wait_for_halt(self):
         # Cancel any running threads
@@ -76,8 +74,10 @@ class MotorController:
         'forward_left': [50, 0, -1, -1],
         'forward_right': [0, 50, -1, -1],
         'backward': [-1, -1, 30, 30],
+        'slow_backward': [-1, -1, 90, 90],
         'backward_left': [-1, -1, 50, 0],
-        'backward_right': [-1, -1, 0, 50]
+        'backward_right': [-1, -1, 0, 50],
+        'stop': [-1, -1, -1, -1]
     }
 
     def __init__(self):
@@ -105,6 +105,7 @@ class MotorController:
         move = self.moves_queue.pop()
 
         # Execute move
+        print "executing move", str(self.moves[move])
         self.change_speeds(*self.moves[move])
 
         # Wait for move
@@ -115,10 +116,6 @@ class MotorController:
             thread.start()
         else:
             self.is_running = False
-            self.motor_1a.stop()
-            self.motor_1b.stop()
-            self.motor_2a.stop()
-            self.motor_2b.stop()
 
     def change_speeds(self, speed_1a, speed_2a, speed_1b, speed_2b):
         self.motor_1a.set_speed(speed_1a)
@@ -133,12 +130,10 @@ class MotorController:
         self.motor_2b.slow_to_halt(halt_time)
 
     def instant_stop(self):
-        self.change_speeds(0, 0, 0, 0)
+        self.change_speeds(100, 100, 100, 100)
 
     def terminate(self):
-        print "Terminated."
         self.motor_1a.terminate()
         self.motor_1b.terminate()
         self.motor_2a.terminate()
         self.motor_2b.terminate()
-        GPIO.cleanup()

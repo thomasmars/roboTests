@@ -74,7 +74,7 @@ class MotorController:
         'forward_left': [50, 0, -1, -1],
         'forward_right': [0, 50, -1, -1],
         'backward': [-1, -1, 30, 30],
-        'slow_backward': [-1, -1, 90, 90],
+        'slow_backward': [-1, -1, 50, 50],
         'backward_left': [-1, -1, 50, 0],
         'backward_right': [-1, -1, 0, 50],
         'stop': [-1, -1, -1, -1]

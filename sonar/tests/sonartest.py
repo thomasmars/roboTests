@@ -18,7 +18,7 @@ print "sending echo"
 GPIO.output(trigger, False)
 
 print "Waiting 2 sec"
-time.sleep(2)
+time.sleep(1)
 
 GPIO.output(trigger, True)
 time.sleep(0.00001)

@@ -10,5 +10,9 @@ export DISPLAY=:0
 #BEST CONFIG ATM:
 cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:udp{mux=ts,dst=192.168.1.142:5004}' --ttl 12
 
+
+# HTTP
+ cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:http{mux=ts,dst=:5004}' --ttl 12
+
 #CONNECT USING:
 udp://@5004

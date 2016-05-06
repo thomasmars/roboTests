@@ -21,33 +21,27 @@ class SonarController:
         GPIO.output(self.trigger, False)
 
     def get_distance(self):
-        self.trigger_signal()
         distance = self.catch_signal()
         return distance
 
     def trigger_signal(self):
+        GPIO.output(self.trigger, False)
+        time.sleep(0.01)
         GPIO.output(self.trigger, True)
         time.sleep(0.00001)
         GPIO.output(self.trigger, False)
 
     def catch_signal(self):
         pulse_start = time.time()
-        error_threshold = 0.01
         pulse_end = -1
+        self.trigger_signal()
         while GPIO.input(self.echo) == 0:
-            if (time.time() - pulse_start) > error_threshold:
-                print "Break!"
-                break
+            pulse_start = time.time()
 
         while GPIO.input(self.echo) == 1:
             pulse_end = time.time()
 
         pulse_duration = pulse_end - pulse_start
-
-        # Invalid catch
-        if (pulse_start < 0) | (pulse_end < 0):
-            return -1
-
         # speed * time = distance
         distance = pulse_duration * self.one_way_speed
         distance = round(distance, 2)
@@ -57,14 +51,14 @@ class SonarController:
         if not self.running:
             return
         accuracy = []
-        while (len(accuracy) <= 5) & self.running:
+        while (len(accuracy) <= 4) & self.running:
             distance = self.get_distance()
             if (distance < stop_distance) & (distance > 0):
                 accuracy.append(distance)
             else:
                 accuracy = []
-            print str(distance)
-            time.sleep(0.01)
+            print "distance: ", str(distance)
+            time.sleep(0.02)
 
         callback()
 

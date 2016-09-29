@@ -92,6 +92,11 @@ class MotorController:
         self.move_duration = 0.5
 
     def add_move(self, move):
+        global moves
+        # Check if valid move
+        if move not in moves:
+            return False
+
         # Max entries
         if len(self.moves_queue) < self.max_queue:
             self.moves_queue.append(move)
@@ -99,6 +104,7 @@ class MotorController:
         if not self.is_running:
             thread = Thread(target=self.execute_move)
             thread.start()
+        return True
 
     def execute_move(self):
         self.is_running = True

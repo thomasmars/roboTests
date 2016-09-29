@@ -22,25 +22,29 @@ advertise_service( server_sock, "SampleServer",
 
 print "Waiting for connection on RFCOMM channel %d" % port
 
-while 1:
-    client_sock, client_info = server_sock.accept()
-    print "Accepted connection from ", client_info
 
-    ctrl = MotorController()
-    try:
-        while True:
-            data = client_sock.recv(1024)
-            if len(data) == 0:
-                break
-            print "received [%s]" % data
-            ctrl.add_move(data)
+print "Waiting for client"
+client_sock, client_info = server_sock.accept()
+print "Accepted connection from ", client_info
 
-    except IOError:
-        pass
+ctrl = MotorController()
+try:
+    while True:
+        print "Waiting for client data"
+        data = client_sock.recv(1024)
+        print "Received client data"
+        if len(data) == 0:
+            break
+        print "received [%s]" % data
+        if ctrl.add_move(data):
+            continue
+        # Handle other data here
 
-    client_sock.close()
+except IOError:
+    pass
 
-
+print "Closing socket!"
+client_sock.close()
 
 print "disconnected"
 

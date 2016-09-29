@@ -8,11 +8,23 @@
 export DISPLAY=:0
 
 #BEST CONFIG ATM:
-cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:udp{mux=ts,dst=192.168.1.142:5004}' --ttl 12
+cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:udp{mux=ts,dst=:5004}' --ttl 12
+cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v,vb=800,acodec=none}:udp{mux=ts,dst=:5004}' --ttl 12
 
 
 # HTTP
- cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:http{mux=ts,dst=:5004}' --ttl 12
+cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:http{mux=ts,dst=:5004}' --ttl 12
+
+# Can we send straight to ip ?
+cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:http{mux=ts,dst=192.168.1.142:5004}' --ttl 12
+
+# Test with RTP:
+cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:rtp{mux=ts,dst=192.168.1.142}' --ttl 12
+
+cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:udp{mux=ts,dst=52.16.81.220:5004}' --ttl 12
 
 #CONNECT USING:
-udp://@5004
+udp://@:5004
+
+#BEST ONE, SENDING STRAIGHT TO THIS MACHINE
+cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:udp{mux=ts,dst=192.168.1.142:5004}' --ttl 12

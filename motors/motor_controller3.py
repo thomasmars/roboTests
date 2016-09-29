@@ -2,8 +2,10 @@ import RPi.GPIO as GPIO
 import time
 from threading import Thread
 
+# TODO: Should implement changes of frequency, not just dutycycle
 
-class MotorPWM():
+
+class MotorPWM:
     def __init__(self, pin):
         GPIO.setup(pin, GPIO.OUT)
         self.motor_pin = pin
@@ -80,7 +82,7 @@ class MotorController:
         'stop': [-1, -1, -1, -1]
     }
 
-    def __init__(self):
+    def __init__(self, voltage_factor=0.5):
         GPIO.setmode(GPIO.BOARD)
         self.motor_1a = MotorPWM(11)
         self.motor_1b = MotorPWM(13)
@@ -90,6 +92,7 @@ class MotorController:
         self.is_running = False
         self.max_queue = 5
         self.move_duration = 0.5
+        self.voltage_factor = voltage_factor
 
     def add_move(self, move):
         # Max entries
@@ -118,10 +121,10 @@ class MotorController:
             self.is_running = False
 
     def change_speeds(self, speed_1a, speed_2a, speed_1b, speed_2b):
-        self.motor_1a.set_speed(speed_1a)
-        self.motor_2a.set_speed(speed_2a)
-        self.motor_1b.set_speed(speed_1b)
-        self.motor_2b.set_speed(speed_2b)
+        self.motor_1a.set_speed(speed_1a * self.voltage_factor)
+        self.motor_2a.set_speed(speed_2a * self.voltage_factor)
+        self.motor_1b.set_speed(speed_1b * self.voltage_factor)
+        self.motor_2b.set_speed(speed_2b * self.voltage_factor)
 
     def halt(self, halt_time):
         self.motor_1a.slow_to_halt(halt_time)

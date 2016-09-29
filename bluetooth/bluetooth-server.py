@@ -1,6 +1,8 @@
-import bluetooth
 import sys
-from motors.pwm_motor import test
+
+import bluetooth
+
+from motors.tests.pwm_motor import test
 
 #  create a socket on bluetooth
 #  RFCOMM is one of several protocols bluetooth can use

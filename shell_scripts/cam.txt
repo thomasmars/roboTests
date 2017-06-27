@@ -1,6 +1,6 @@
 # Drivers has been automatically added:
 # sudo modprobe ov5640
-# sudo modprobe sun4i_csi0
+# sudo modprobe sun4ie_csi0
 
 # No longer using motion
 # sudo service motion start
@@ -19,7 +19,7 @@ cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:
 cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:http{mux=ts,dst=192.168.1.142:5004}' --ttl 12
 
 # Test with RTP:
-cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:rtp{mux=ts,dst=192.168.1.142}' --ttl 12
+se
 
 cvlc -v v4l2:///dev/video0:width=480:height=640 --sout '#transcode{vcodec=mp4v}:udp{mux=ts,dst=52.16.81.220:5004}' --ttl 12
 
